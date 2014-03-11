@@ -82,5 +82,9 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
     <h3>自由聊天室模块</h3>
     	<li><a href="module/room/createRoom.jsp">创建聊天室</a></li>
     </div>
+    <div style="width:200px; border:1px solid red; position: relative; left:500px; top: -650px">
+    <h3>视频</h3>
+    	<li><a href="webrtc.jsp">视频</a></li>
+    </div>
   </body>
 </html>

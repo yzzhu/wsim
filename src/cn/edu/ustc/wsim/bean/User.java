@@ -40,6 +40,16 @@ public class User implements java.io.Serializable {
 	private String name;
 	private UserStatus status;
 	
+	private Integer score;
+	
+	public Integer getScore() {
+		return score;
+	}
+
+	public void setScore(Integer score) {
+		this.score = score;
+	}
+
 	private Set groupUsers = new HashSet(0);
 	private Set groupmessages = new HashSet(0);
 	private Set grouprequests = new HashSet(0);

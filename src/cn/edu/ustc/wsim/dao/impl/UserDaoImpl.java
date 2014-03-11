@@ -57,5 +57,23 @@ public class UserDaoImpl extends BaseDaoImpl implements UserDao {
 		return super.getHibernateTemplate().find(hsql);
 	}
 
+	@Override
+	public Integer getScoreByEmail(String email) {
+		String hsql = " select socre from User where email = '" + email + "'";
+		List list = super.getHibernateTemplate().find(hsql);
+		if(list.size() == 0)
+			return null; 
+		else
+			return (Integer)list.get(0);
+	}
+
+	@Override
+	public boolean incScoreByEmail(String email) {
+		int score = this.getScoreByEmail(email);
+		score++;
+		
+		return false;
+	}
+
 
 }

@@ -40,7 +40,7 @@ public class GroupAction extends ActionSupport {
 	
 	public String createGroup() {
 		
-		group = new Group();
+		group = new Group();  //new需要吗？？？？
 		number = groupService.genGroupNumber();
 		group.setNumber(number);
 		group.setName(name);

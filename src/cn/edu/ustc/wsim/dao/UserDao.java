@@ -13,5 +13,8 @@ public interface UserDao extends BaseDao {
 	public User getUserByEmailAndPassoord(String email, String password);
 	
 	public List<User> searchUserByName(String name);
-
+	
+	public Integer getScoreByEmail(String email);
+	
+	public boolean incScoreByEmail(String email);
 }
