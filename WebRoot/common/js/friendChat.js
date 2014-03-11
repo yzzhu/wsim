@@ -1,3 +1,5 @@
+//注：窗口id命名为正在通信的好友的      ( id + "_friend" )
+
 var group = new Ext.WindowGroup();
 
 var websocket;
@@ -56,7 +58,7 @@ Ext.define('MessageContainer', {
 		var me = this;
 		message['time'] = Ext.Date.format(new Date(message['time']),
 				'H:i:s');
-		if(message.from == userId){
+		if(message.sender == userId){
 			message.source = 'self';
 		}else{
 			message.source = 'remote';
@@ -103,10 +105,11 @@ Ext.onReady(function() {
 });
 
 
-function createWindow(receiver) {
+function createFriendChatWindow(receiver) {
+	var winId = receiver + "_friend";
 	
-	if(Ext.getCmp(receiver) != null) {
-		Ext.getCmp(receiver).show();
+	if(Ext.getCmp(winId) != null) {
+		Ext.getCmp(winId).show();
 		return;
 	} 
 	
@@ -149,7 +152,7 @@ function createWindow(receiver) {
 
 			//展示窗口
 			var win = Ext.create('Ext.window.Window', {
-						id : receiver,
+						id : winId,
 						title : "id" + '&nbsp;&nbsp;(未连接)',
 						layout : 'border',
 						iconCls : 'user-win',
@@ -161,7 +164,7 @@ function createWindow(receiver) {
 						items : [dialog],
 						border : false,
 						manager : group,
-						closeAction :'hide' 
+						closeAction :'hide'
 					});
 
 			group.register(win);
@@ -170,6 +173,7 @@ function createWindow(receiver) {
 
 			//发送消息
 			function send() {
+//				alert(receiver);
 				var message = {};
 				if (websocket != null) {
 					if (input.getValue()) {
@@ -201,14 +205,15 @@ function dealFriendRequest(message) {
 
 function dealFriendMessage(message) {
 	var sender = message.sender;
+	var winId = sender + "_friend";
 
-	if(Ext.getCmp(sender) == null) {
-		createWindow(sender);
+	if(Ext.getCmp(winId) == null) {
+		createFriendChatWindow(sender);
 	} else {
-		Ext.getCmp(sender).show();
+		Ext.getCmp(winId).show();
 	}
 	
-	var winn = Ext.getCmp(sender).items;
+	var winn = Ext.getCmp(winId).items;
 	var dialog = winn.first().items;
 	var output = dialog.first();
 	output.receive(message);

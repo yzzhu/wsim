@@ -1,3 +1,6 @@
+//注：窗口id命名为正在通信的好友的      ( id + "_friend" )
+//	群通信窗口命名   ( id + "_group" )
+
 var group = new Ext.WindowGroup();
 
 var websocket;
@@ -56,7 +59,7 @@ Ext.define('MessageContainer', {
 		var me = this;
 		message['time'] = Ext.Date.format(new Date(message['time']),
 				'H:i:s');
-		if(message.from == userId){
+		if(message.sender == userId){
 			message.source = 'self';
 		}else{
 			message.source = 'remote';
@@ -92,10 +95,14 @@ Ext.onReady(function() {
 					//接收用户发送的消息
 					if (message.type == 'friendMessage') {
 						dealFriendMessage(message);
+					} else if(message.type == "groupMessage") {
+						dealGroupMessage(message);
 					} else if(message.type == 'notify') {
 						notify();
 					} else if(message.type == 'friendRequest') {
 						dealFriendRequest(message);
+					} else if(message.type == 'videoRequest') {
+						dealVideoRequest(message);
 					}
 				}
 			};
@@ -103,12 +110,13 @@ Ext.onReady(function() {
 });
 
 
-function createWindow(receiver) {
-	
-	if(Ext.getCmp(receiver) != null) {
-		Ext.getCmp(receiver).show();
-		return;
-	} 
+function createFriendChatWindow(receiver) {
+			var winId = receiver + "_friend";
+			
+			if(Ext.getCmp(winId) != null) {
+				Ext.getCmp(winId).show();
+				return;
+			} 
 	
 			//创建用户输入框
 			var input = Ext.create('Ext.form.field.HtmlEditor', {
@@ -132,6 +140,7 @@ function createWindow(receiver) {
 							}
 						}
 					});
+
 			//创建消息展示容器
 			var output = Ext.create('MessageContainer', {
 						region : 'center'
@@ -149,8 +158,8 @@ function createWindow(receiver) {
 
 			//展示窗口
 			var win = Ext.create('Ext.window.Window', {
-						id : receiver,
-						title : "id" + '&nbsp;&nbsp;(未连接)',
+						id : winId,
+						title : '与&nbsp;' + receiver + '&nbsp;聊天中',
 						layout : 'border',
 						iconCls : 'user-win',
 						minWidth : 450,
@@ -161,7 +170,7 @@ function createWindow(receiver) {
 						items : [dialog],
 						border : false,
 						manager : group,
-						closeAction :'hide' 
+						closeAction :'hide'
 					});
 
 			group.register(win);
@@ -170,6 +179,7 @@ function createWindow(receiver) {
 
 			//发送消息
 			function send() {
+//				alert(receiver);
 				var message = {};
 				if (websocket != null) {
 					if (input.getValue()) {
@@ -189,28 +199,147 @@ function createWindow(receiver) {
 				}
 			}
 				
-			function receive(message) {
-				output.receive(message);
-			}	
+//			function receive(message) {
+//				output.receive(message);
+//			}	
 }
+
+
+function createGroupChatWindow(groupId) {
+	
+			var winId = groupId + "_group";
+			
+			if(Ext.getCmp(winId) != null) {
+				Ext.getCmp(winId).show();
+				return;
+			} 
+
+	
+			//创建用户输入框
+			var input = Ext.create('Ext.form.field.HtmlEditor', {
+						region : 'south',
+						height : 120,
+						enableFont : false,
+						enableSourceEdit : false,
+						enableAlignments : false,
+						listeners : {
+							initialize : function() {
+								Ext.EventManager.on(me.input.getDoc(), {
+											keyup : function(e) {
+												if (e.ctrlKey === true
+														&& e.keyCode == 13) {
+													e.preventDefault();
+													e.stopPropagation();
+													send();
+												}
+											}
+										});
+							}
+						}
+					});
+
+			//创建消息展示容器
+			var output = Ext.create('MessageContainer', {
+						region : 'center'
+					});
+
+			var dialog = Ext.create('Ext.panel.Panel', {
+						region : 'center',
+						layout : 'border',
+						items : [output, input],
+						buttons : [{
+									text : '发送',
+									handler : send
+								}]
+					});
+
+			//展示窗口
+			var win = Ext.create('Ext.window.Window', {
+						id : winId,
+						title : '群&nbsp;' + groupId + '&nbsp;聊天中',
+						layout : 'border',
+						iconCls : 'user-win',
+						minWidth : 450,
+						minHeight : 460,
+						width : 450,
+						animateTarget : 'websocket_button',
+						height : 460,
+						items : [dialog],
+						border : false,
+						manager : group,
+						closeAction :'hide'
+					});
+
+			group.register(win);
+			win.show();
+			
+
+			//发送消息
+			function send() {
+				var message = {};
+				if (websocket != null) {
+					if (input.getValue()) {
+						Ext.apply(message, {
+									type : "groupMessage",
+									sender : userId+"",
+									group : groupId+"",
+									content : input.getValue(),
+									time : new Date().getTime()
+								});
+						websocket.send(JSON.stringify(message));
+//						output.receive(message);
+						input.setValue('');
+					}
+				} else {
+					Ext.Msg.alert('提示', '您已经掉线，无法发送消息!');
+				}
+			}
+}
+
 
 
 function dealFriendRequest(message) {
 	alert("friendRequest: " + message.type + message.requester + message.remark);
 }
 
+function dealVideoRequest(message) {
+	alert("视频请求： 请求者：" + message.requester);
+	window.open("http://127.0.0.1:8080/wsim/conn.servlet?type=res&self=" + userId + "&other=" + message.requester
+			, "_blank");
+}
+
+
 function dealFriendMessage(message) {
 	var sender = message.sender;
+	var winId = sender + "_friend";
 
-	if(Ext.getCmp(sender) == null) {
-		createWindow(sender);
+	if(Ext.getCmp(winId) == null) {
+		createFriendChatWindow(sender);
 	} else {
-		Ext.getCmp(sender).show();
+		Ext.getCmp(winId).show();
 	}
 	
-	var winn = Ext.getCmp(sender).items;
+	var winn = Ext.getCmp(winId).items;
 	var dialog = winn.first().items;
 	var output = dialog.first();
 	output.receive(message);
 
+}
+
+
+function dealGroupMessage(message) {
+	var groupId = message.group;
+	var winId = groupId + "_group";
+
+	if(Ext.getCmp(winId) == null) {
+		createGroupChatWindow(groupId);
+	} else {
+		Ext.getCmp(winId).show();
+	}
+	
+	var winn = Ext.getCmp(winId).items;
+	var dialog = winn.first().items;
+	var output = dialog.first();
+	output.receive(message);
+	
 }
