@@ -20,24 +20,33 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 	<link rel="stylesheet" type="text/css" href="styles.css">
 	-->
 	
+	<!-- 引入CSS文件 -->
+	<link rel="stylesheet" type="text/css" href="lib/ext4/resources/css/ext-all.css">
+	<link rel="stylesheet" type="text/css" href="lib/ext4/shared/example.css" />
+	<link rel="stylesheet" type="text/css" href="common/css/websocket.css" />
+	
+	<!-- 映入Ext的JS开发包，及自己实现的webscoket. -->
+	<script type="text/javascript" src="lib/ext4/ext-all-debug.js"></script>
+	<script type="text/javascript" src="common/js/chat.js"></script>
+	<script type="text/javascript">
+		var userId = "${userId }";
+	</script>
+	  
   </head>
   
   <body>
-  
-  <input type="hidden" id="userId" name="userId" value="${userId }"/>
-  
+    
+    <h3>好友</h3>  
     <table border="1">
     	<tr>
     		<th>friendGroupId</th>
     		<th>name</th>
-    		<th>操作</th>
     		<th>friends</th>
     	</tr>
    	<s:iterator value="friendGroups"  status="sta">
    		<tr>
    			<td>${id }</td>
    			<td>${name }</td>
-   			<td><a href="module/friend/changeFriendGroupName.jsp?id=${id }">修改名称</a></td>
    			<td>
    				<table border="1">
    					<tr>
@@ -45,9 +54,8 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
    						<th>friendGroupId</th>
    						<th>friendUserName</th>
    						<th>remark</th>
-   						<th>修改备注名</th>
-   						<th>修改所在分组</th>
-   						<th>删除好友</th>
+   						<th>文字通信</th>
+   						<th>语音通信</th>
    					</tr>
    					<s:iterator value="friends">
    						<tr>
@@ -55,9 +63,10 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
    							<td>${friendgroup.name }</td>
    							<td>${user.name }</td>
    							<td>${remark }</td>
-   							<td><a href="module/friend/changeFriendRemark.jsp?id=${id }">修改备注名</a></td>
-   							<td><a>change friend group(unfinish)</a></td>
-   							<td><a href="friend_delFriend.action?id=${id }">删除</a></td>
+   							<td>
+   								<input type="button" onclick="createFriendChatWindow(${user.id })" value="文字通信"/>
+   							</td>
+   							<td><a href="conn.servlet?type=req&self=${userId }&other=${user.id }">语音视频</a></td>
    						</tr>
    					</s:iterator>
    				</table>
@@ -65,6 +74,33 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
    		</tr>
    	</s:iterator>
     </table>
+    
+    <br>
+    
+    <h3>群</h3>
+    <table border="1">
+    	<tr>
+    		<th>name</th>
+    		<th>number</th>
+    		<th>群名片</th>
+    		<th>通信</th>
+    	</tr>
+   	<s:iterator value="groupUsers">
+   		<tr>
+   			<td>${group.name }</td>
+   			<td>${group.number }</td>
+   			<td>${remark }</td>
+   			<td>
+   				<input type="button"  onclick="createGroupChatWindow(${group.id })" value="文字通信"//>
+   			</td>
+   		</tr>
+   	</s:iterator>
+    </table>
+    
+    
+      
+    <div id="websocket_button"></div>
+    
     
   </body>
 </html>
